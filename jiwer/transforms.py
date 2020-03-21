@@ -27,11 +27,21 @@ from typing import Union, List
 
 import string
 
-whitespace_characters = [c for c in string.whitespace]
-punctuation_characters = [c for c in string.punctuation]
+__all__ = [
+    "Compose",
+    "ExpandCommonEnglishContractions",
+    "SentencesToListOfWords",
+    "RemoveKaldiNonWords",
+    "RemoveMultipleSpaces",
+    "RemovePunctuation",
+    "RemoveSpecificWords",
+    "RemoveWhiteSpace",
+    "ToLowerCase",
+    "ToUpperCase",
+]
+
 
 class Compose(object):
-
     def __init__(self, transforms):
         self.transforms = transforms
 
@@ -41,16 +51,19 @@ class Compose(object):
 
         return text
 
-class BaseTransform(object):
 
+class BaseTransform(object):
     def __call__(self, sentences: Union[str, List[str]]):
         if isinstance(sentences, str):
             return self.process_string(sentences)
         elif isinstance(sentences, list):
             return self.process_list(sentences)
         else:
-            raise ValueError("input {} was expected to be a string or list of strings".format(sentences))
-
+            raise ValueError(
+                "input {} was expected to be a string or list of strings".format(
+                    sentences
+                )
+            )
 
     def process_string(self, s: str):
         raise NotImplementedError()
@@ -59,59 +72,123 @@ class BaseTransform(object):
         return [self.process_string(s) for s in inp]
 
 
-class SentenceToListOfWords(BaseTransform):
-
-    def __init__(self, word_delimiter=" ", sentence_delimiter=None):
-        """
-        Transforms one or more sentences into a list of words. A sentence is
-        assumed to be a string, where words are delimited by a token
-        (such as ` `, space).
-
-        :param word_delimiter: the character which delimits words. Default is ` ` (space).
-        :param sentence_delimiter: the character which delimits sentences. Default is None (sentences are not delimited)
-        """
-        self.word_delimiter = word_delimiter
-        self.sentence_delimiter = sentence_delimiter
+class BaseRemoveTransform(BaseTransform):
+    def __init__(self, tokens_to_remove: List[str]):
+        self.tokens_to_remove = tokens_to_remove
 
     def process_string(self, s: str):
-        if self.sentence_delimiter is not None:
-            s = s.split(self.sentence_delimiter)
+        for w in self.tokens_to_remove:
+            s = s.replace(w, "")
 
-        return s.split(self.word_delimiter)
-
-
-
-class RemoveSpecificWords(BaseTransform):
-
-    def __init__(self, words_to_remove: List[str]):
-        self.words_to_remove = words_to_remove
-
-    def process_string(self, s: str):
-        for w in self.words_to_remove:
-            s = s.replace(w, "", )
+        s = RemoveMultipleSpaces()(s)
+        s = Strip()(s)
 
         return s
 
-class RemoveWhiteSpace(BaseTransform):
+    def process_list(self, inp: List[str]):
+        p = [self.process_string(s) for s in inp]
+        p = Strip()(p)
 
-    def __init__(self, characters=string.whitespace):
+        return p
 
-class RemoveMultipleSpaces(BaseTransform):
+
+class SentencesToListOfWords(BaseTransform):
+    def __init__(self, word_delimiter=" "):
+        """
+        Transforms one or more sentences into a list of words. A sentence is
+        assumed to be a string, where words are delimited by a token
+        (such as ` `, space). Each string is expected to contain only a single sentence.
+
+        :param word_delimiter: the character which delimits words. Default is ` ` (space).
+        Default is None (sentences are not delimited)
+        """
+        self.word_delimiter = word_delimiter
 
     def process_string(self, s: str):
-        return re.sub("\s\s+", " ", s)
+        return s.split(self.word_delimiter)
+
+    def process_list(self, inp: List[str]):
+        words = []
+
+        for sentence in inp:
+            words.extend(self.process_string(sentence))
+
+        return words
 
 
-
-class ExpandAbbreviations:
-    pass
-
-
-class ToLowerCase(object):
-    pass
+class RemoveSpecificWords(BaseRemoveTransform):
+    def __init__(self, words_to_remove: List[str]):
+        super().__init__(words_to_remove)
 
 
-class RemoveNonWords(object):
-    pass
+class RemoveWhiteSpace(BaseRemoveTransform):
+    def __init__(self, include_space=True):
+        characters = [c for c in string.whitespace]
 
-class Remove
+        if not include_space:
+            characters.remove(" ")
+
+        super().__init__(characters)
+
+
+class RemovePunctuation(BaseRemoveTransform):
+    def __init__(self):
+        characters = [c for c in string.punctuation]
+
+        super().__init__(characters)
+
+
+class RemoveMultipleSpaces(BaseTransform):
+    def process_string(self, s: str):
+        return re.sub(r"\s\s+", " ", s)
+
+
+class Strip(BaseTransform):
+    def process_string(self, s: str):
+        return s.strip()
+
+    def process_list(self, inp: List[str]):
+        if inp[0] == "":
+            inp = inp[1:]
+
+        if inp[-1] == "":
+            inp = inp[:-1]
+
+        return inp
+
+
+class ExpandCommonEnglishContractions(BaseTransform):
+    def process_string(self, s: str):
+        # definitely a non exhaustive list
+
+        # specific words
+        s = re.sub(r"won't", "will not", s)
+        s = re.sub(r"can\'t", "can not", s)
+        s = re.sub(r"let\'s", "let us", s)
+
+        # general attachments
+        s = re.sub(r"n\'t", " not", s)
+        s = re.sub(r"\'re", " are", s)
+        s = re.sub(r"\'s", " is", s)
+        s = re.sub(r"\'d", " would", s)
+        s = re.sub(r"\'ll", " will", s)
+        s = re.sub(r"\'t", " not", s)
+        s = re.sub(r"\'ve", " have", s)
+        s = re.sub(r"\'m", " am", s)
+
+        return s
+
+
+class ToLowerCase(BaseTransform):
+    def process_string(self, s: str):
+        return s.lower()
+
+
+class ToUpperCase(BaseTransform):
+    def process_string(self, s: str):
+        return s.upper()
+
+
+class RemoveKaldiNonWords(BaseTransform):
+    def process_string(self, s: str):
+        return re.sub(r"[<\[][^>\]]*[>\]]", "", s)

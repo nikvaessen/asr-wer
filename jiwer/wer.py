@@ -36,13 +36,13 @@ import jiwer.transforms as tr
 
 _default_transform = tr.Compose([
     tr.RemoveMultipleSpaces(),
-    tr.SentenceToListOfWords()
+    tr.SentencesToListOfWords()
 ])
 
 
 def wer(
-    hypothesis: Union[str, List[str]],
     truth: Union[str, List[str]],
+    hypothesis: Union[str, List[str]],
     truth_transform=_default_transform,
     hypothesis_transform=_default_transform,
 ) -> float:
