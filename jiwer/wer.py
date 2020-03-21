@@ -49,8 +49,8 @@ _standardize_transform = tr.Compose(
     [
         tr.ToLowerCase(),
         tr.ExpandCommonEnglishContractions(),
-        tr.RemoveKaldiNonWords,
-        tr.RemoveWhiteSpace(include_space=True),
+        tr.RemoveKaldiNonWords(),
+        tr.RemoveWhiteSpace(replace_by_space=True),
     ]
 )
 
@@ -76,7 +76,7 @@ def wer(
 
     The optional `transforms` arguments can be used to apply pre-processing to
     respectively the ground truth and hypotheses input. Note that the transform
-    should ALWAYS include `ToListOfWords`, as that is the expected input.
+    should ALWAYS include `SentencesToListOfWords`, as that is the expected input.
 
     :param truth: the ground-truth sentence(s) as a string or list of strings
     :param hypothesis: the hypothesis sentence(s) as a string or list of strings
@@ -87,7 +87,7 @@ def wer(
     # deal with old API
     if "standardize" in kwargs:
         truth = _standardize_transform(truth)
-        hypothesis = _standardize_transform(truth)
+        hypothesis = _standardize_transform(hypothesis)
     if "words_to_filter" in kwargs:
         t = tr.RemoveSpecificWords(kwargs["words_to_filter"])
         truth = t(truth)

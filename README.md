@@ -121,10 +121,10 @@ print(jiwer.SentencesToListOfWords()(sentences))
 
 Example:
 ```python
-sentences = ["yhe awesome", "the apple is not a pear"]
+sentences = ["yhe awesome", "the apple is not a pear", "yhe"]
 
 print(jiwer.RemoveSpecificWords(["yhe", "the", "a"])(sentences))
-# prints: ["awesome", "apple is pear"]
+# prints: ["awesome", "apple is pear", ""]
 ```
 
 #### RemoveWhiteSpace
@@ -138,7 +138,7 @@ Example:
 ```python
 sentences = ["this is an example", "hello\tworld\n\r"]
 
-print(jiwer.RemoveWhiteSpace(replace_by_space=False)(sentences))
+print(jiwer.RemoveWhiteSpace()(sentences))
 # prints: ["thisisanexample", "helloworld"]
 
 print(jiwer.RemoveWhiteSpace(replace_by_space=True)(sentences))
@@ -182,7 +182,7 @@ Example:
 sentences = [" this is an example ", "  hello goodbye  ", "  "]
 
 print(jiwer.Strip()(sentences))
-# prints: ['this is an example ', "hello goodbye", ""]
+# prints: ['this is an example', "hello goodbye", ""]
 # note that there is an empty string left behind which might need to be cleaned up
 ```
 
@@ -224,7 +224,7 @@ Example:
 sentences = ["she'll make sure you can't make it", "let's party!"]
 
 print(jiwer.ExpandCommonEnglishContractions()(sentences))
-# prints: ["she will make sure you can not make it", "let us party"!]
+# prints: ["she will make sure you can not make it", "let us party!"]
 ```
 
 #### ReplaceWords
@@ -277,5 +277,6 @@ sentences = ["you <unk> like [laugh]"]
 
 print(jiwer.RemoveKaldiNonWords()(sentences))
 
-# prints: ["you like"]
+# prints: ["you  like "]
+# note the extra spaces
 ```

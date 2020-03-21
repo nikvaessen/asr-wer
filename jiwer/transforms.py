@@ -23,20 +23,23 @@ such as filtering out common words and standardizing abbreviations.
 """
 
 import re
+import string
+
 from typing import Union, List, Mapping
 
-import string
 
 __all__ = [
     "AbstractTransform",
     "Compose",
     "ExpandCommonEnglishContractions",
     "SentencesToListOfWords",
+    "RemoveEmptyStrings",
     "RemoveKaldiNonWords",
     "RemoveMultipleSpaces",
     "RemovePunctuation",
     "RemoveSpecificWords",
     "RemoveWhiteSpace",
+    "Strip",
     "ToLowerCase",
     "ToUpperCase",
 ]
@@ -74,23 +77,18 @@ class Compose(object):
 
 
 class BaseRemoveTransform(AbstractTransform):
-    def __init__(self, tokens_to_remove: List[str]):
+    def __init__(self, tokens_to_remove: List[str], replace_token=""):
         self.tokens_to_remove = tokens_to_remove
+        self.replace_token = replace_token
 
     def process_string(self, s: str):
         for w in self.tokens_to_remove:
-            s = s.replace(w, "")
-
-        s = RemoveMultipleSpaces()(s)
-        s = Strip()(s)
+            s = s.replace(w, self.replace_token)
 
         return s
 
     def process_list(self, inp: List[str]):
-        p = [self.process_string(s) for s in inp]
-        p = Strip()(p)
-
-        return p
+        return [self.process_string(s) for s in inp]
 
 
 class SentencesToListOfWords(AbstractTransform):
@@ -123,13 +121,15 @@ class RemoveSpecificWords(BaseRemoveTransform):
 
 
 class RemoveWhiteSpace(BaseRemoveTransform):
-    def __init__(self, include_space: bool = True):
+    def __init__(self, replace_by_space: bool = False):
         characters = [c for c in string.whitespace]
 
-        if not include_space:
-            characters.remove(" ")
+        if replace_by_space:
+            replace_token = " "
+        else:
+            replace_token = ""
 
-        super().__init__(characters)
+        super().__init__(characters, replace_token=replace_token)
 
 
 class RemovePunctuation(BaseRemoveTransform):

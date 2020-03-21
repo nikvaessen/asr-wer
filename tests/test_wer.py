@@ -39,8 +39,20 @@ class TestWERInputMethods(unittest.TestCase):
 
         self._apply_test_on(cases)
 
+    def test_different_sentence_length(self):
+        cases = [
+            (["hello", "this", "sentence", "is fractured"], ["this sentence"], 0.6)
+        ]
+
+        self._apply_test_on(cases)
+
+    def test_fail_on_empty_ground_truth(self):
+        def callback():
+            jiwer.wer("", "test")
+
+        self.assertRaises(ValueError, callback)
+
     def _apply_test_on(self, cases):
         for gt, h, correct_wer in cases:
             wer = jiwer.wer(truth=gt, hypothesis=h)
             self.assertAlmostEqual(wer, correct_wer, delta=1e-16)
-
