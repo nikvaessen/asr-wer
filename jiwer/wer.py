@@ -31,13 +31,28 @@ from itertools import chain
 
 import jiwer.transforms as tr
 
+__all__ = ["wer"]
+
 ################################################################################
 # Implementation of the WER method, exposed publicly
 
-_default_transform = tr.Compose([
-    tr.RemoveMultipleSpaces(),
-    tr.SentencesToListOfWords()
-])
+_default_transform = tr.Compose(
+    [
+        tr.RemoveMultipleSpaces(),
+        tr.Strip(),
+        tr.SentencesToListOfWords(),
+        tr.RemoveEmptyStrings(),
+    ]
+)
+
+_standardize_transform = tr.Compose(
+    [
+        tr.ToLowerCase(),
+        tr.ExpandCommonEnglishContractions(),
+        tr.RemoveKaldiNonWords,
+        tr.RemoveWhiteSpace(include_space=True),
+    ]
+)
 
 
 def wer(
@@ -45,6 +60,7 @@ def wer(
     hypothesis: Union[str, List[str]],
     truth_transform=_default_transform,
     hypothesis_transform=_default_transform,
+    **kwargs
 ) -> float:
     """
     Calculate the WER between between a set of ground-truth sentences and a set of
@@ -66,6 +82,15 @@ def wer(
     :param hypothesis_transform: the transformation to apply on the hypothesis input
     :return: the WER as a floating number between 0 and 1
     """
+    # deal with old API
+    if "standardize" in kwargs:
+        truth = _standardize_transform(truth)
+        hypothesis = _standardize_transform(truth)
+    if "words_to_filter" in kwargs:
+        t = tr.RemoveSpecificWords(kwargs['words_to_filter'])
+        truth = t(truth)
+        hypothesis = t(hypothesis)
+
     # Apply transforms. By default, it collapses input to a list of words
     truth = truth_transform(truth)
     hypothesis = hypothesis_transform(hypothesis)
