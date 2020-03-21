@@ -203,21 +203,21 @@ print(jiwer.RemoveEmptyStrings()(sentences))
 
 `jiwer.ExpandCommonEnglishContractions()` can be used to replace common contractions such as `let's` to `let us`.
 
-Currenty, this method will perform replace the following words:
+Currently, this method will perform the following replacements. Note that `␣` is used to indicate a space ` ` to get around markdown rendering constrains.
 
 | Contraction   | transformed into |
 | ------------- |:----------------:|
-| `won't`       | ` will not`      |
-| `can't`       | ` can not`       |
-| `let's`       | ` let us`        |
-| `n't`         | ` not`           |
-| `'re`         | ` are`           |
-| `'s`          | ` is`            |
-| `'d`          | ` would`         |
-| `'ll`         | ` will`          |
-| `'t`          | ` not`           |
-| `'ve`         | ` have`          |
-| `'m`          | ` am`            |
+| `won't`       | `␣will not`      |
+| `can't`       | `␣can not`       |
+| `let's`       | `␣let us`        |
+| `n't`         | `␣not`           |
+| `'re`         | `␣are`           |
+| `'s`          | `␣is`            |
+| `'d`          | `␣would`         |
+| `'ll`         | `␣will`          |
+| `'t`          | `␣not`           |
+| `'ve`         | `␣have`          |
+| `'m`          | `␣am`            |
 
 Example:
 ```python
