@@ -23,7 +23,7 @@ such as filtering out common words and standardizing abbreviations.
 """
 
 import re
-from typing import Union, List
+from typing import Union, List, Mapping
 
 import string
 
@@ -142,22 +142,26 @@ class RemoveMultipleSpaces(BaseTransform):
     def process_string(self, s: str):
         return re.sub(r"\s\s+", " ", s)
 
+    def process_list(self, inp: List[str]):
+        return [self.process_string(s) for s in inp]
+
 
 class Strip(BaseTransform):
     def process_string(self, s: str):
         return s.strip()
 
+
+class RemoveEmptyStrings(BaseTransform):
+
+    def process_string(self, s: str):
+        return s.strip()
+
     def process_list(self, inp: List[str]):
-        if inp[0] == "":
-            inp = inp[1:]
-
-        if inp[-1] == "":
-            inp = inp[:-1]
-
-        return inp
+        return [s for s in inp if self.process_string(s) != ""]
 
 
 class ExpandCommonEnglishContractions(BaseTransform):
+
     def process_string(self, s: str):
         # definitely a non exhaustive list
 
@@ -175,6 +179,18 @@ class ExpandCommonEnglishContractions(BaseTransform):
         s = re.sub(r"\'t", " not", s)
         s = re.sub(r"\'ve", " have", s)
         s = re.sub(r"\'m", " am", s)
+
+        return s
+
+
+class ReplaceWords(BaseTransform):
+
+    def __init__(self, dictionary: Mapping[str, str]):
+        self.dictionary = dictionary
+
+    def process_string(self, s: str):
+        for key, value in self.dictionary.items():
+            s = re.sub(key, value, s)
 
         return s
 

@@ -48,7 +48,4 @@ class TestRemoveSpecificWords(unittest.TestCase):
 
     def _apply_test_on(self, tr, cases):
         for inp, outp in cases:
-            print("input:",  inp)
-            print("outp:", outp)
-            print("t:", tr(inp))
             self.assertEqual(outp, tr(inp))
