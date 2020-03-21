@@ -263,7 +263,7 @@ sentences = ["You're amazing"]
 
 print(jiwer.ToUpperCase()(sentences))
 
-# prints: ["YOU"RE AMAZING"]
+# prints: ["YOU'RE AMAZING"]
 ```
 
 #### RemoveKaldiNonWords
