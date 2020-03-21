@@ -229,14 +229,53 @@ print(jiwer.ExpandCommonEnglishContractions()(sentences))
 
 #### ReplaceWords
 
-`jiwer.ExpandCommonEnglishContractions()` can be used to replace common contractions such as `let's` to `let us`.
-
-Currenty, this method will perform replace the following words:
+`jiwer.ReplaceWords(dictionary: Mapping[str, str])` can be used to replace a word into another word.
 
 Example:
 ```python
-sentences = ["she'll make sure you can't make it", "let's party!"]
+sentences = ["you're pretty"]
 
-print(jiwer.ExpandCommonEnglishContractions()(sentences))
-# prints: ["she will make sure you can not make it", "let us party"!]
+print(jiwer.ReplaceWords({"pretty": "awesome", "you": "i", "'re": " am"})(sentences))
+
+# prints: ["i am awesome"]
+```
+
+#### ToLowerCase
+
+`jiwer.ToLowerCase()` can be used to convert every character into lowercase.
+
+Example:
+```python
+sentences = ["You're PRETTY"]
+
+print(jiwer.ToLowerCase()(sentences))
+
+# prints: ["you're pretty"]
+```
+
+#### ToUpperCase
+
+`jiwer.ToLowerCase()` can be used to replace every character into uppercase.
+
+Example:
+```python
+sentences = ["You're amazing"]
+
+print(jiwer.ToUpperCase()(sentences))
+
+# prints: ["YOU"RE AMAZING"]
+```
+
+#### RemoveKaldiNonWords
+
+`jiwer.RemoveKaldiNonWords()` can be used to remove any word between `[]` and `<>`. This can be useful when working
+with hypotheses from the Kaldi project, which can output non-words such as `[laugh]` and `<unk>`.
+
+Example:
+```python
+sentences = ["you <unk> like [laugh]"]
+
+print(jiwer.RemoveKaldiNonWords()(sentences))
+
+# prints: ["you like"]
 ```
