@@ -28,6 +28,7 @@ from typing import Union, List, Mapping
 import string
 
 __all__ = [
+    "AbstractTransform",
     "Compose",
     "ExpandCommonEnglishContractions",
     "SentencesToListOfWords",
@@ -41,18 +42,7 @@ __all__ = [
 ]
 
 
-class Compose(object):
-    def __init__(self, transforms):
-        self.transforms = transforms
-
-    def __call__(self, text):
-        for tr in self.transforms:
-            text = tr(text)
-
-        return text
-
-
-class BaseTransform(object):
+class AbstractTransform(object):
     def __call__(self, sentences: Union[str, List[str]]):
         if isinstance(sentences, str):
             return self.process_string(sentences)
@@ -72,7 +62,18 @@ class BaseTransform(object):
         return [self.process_string(s) for s in inp]
 
 
-class BaseRemoveTransform(BaseTransform):
+class Compose(object):
+    def __init__(self, transforms: List[AbstractTransform]):
+        self.transforms = transforms
+
+    def __call__(self, text):
+        for tr in self.transforms:
+            text = tr(text)
+
+        return text
+
+
+class BaseRemoveTransform(AbstractTransform):
     def __init__(self, tokens_to_remove: List[str]):
         self.tokens_to_remove = tokens_to_remove
 
@@ -92,8 +93,8 @@ class BaseRemoveTransform(BaseTransform):
         return p
 
 
-class SentencesToListOfWords(BaseTransform):
-    def __init__(self, word_delimiter=" "):
+class SentencesToListOfWords(AbstractTransform):
+    def __init__(self, word_delimiter: str = " "):
         """
         Transforms one or more sentences into a list of words. A sentence is
         assumed to be a string, where words are delimited by a token
@@ -122,7 +123,7 @@ class RemoveSpecificWords(BaseRemoveTransform):
 
 
 class RemoveWhiteSpace(BaseRemoveTransform):
-    def __init__(self, include_space=True):
+    def __init__(self, include_space: bool = True):
         characters = [c for c in string.whitespace]
 
         if not include_space:
@@ -138,7 +139,7 @@ class RemovePunctuation(BaseRemoveTransform):
         super().__init__(characters)
 
 
-class RemoveMultipleSpaces(BaseTransform):
+class RemoveMultipleSpaces(AbstractTransform):
     def process_string(self, s: str):
         return re.sub(r"\s\s+", " ", s)
 
@@ -146,13 +147,12 @@ class RemoveMultipleSpaces(BaseTransform):
         return [self.process_string(s) for s in inp]
 
 
-class Strip(BaseTransform):
+class Strip(AbstractTransform):
     def process_string(self, s: str):
         return s.strip()
 
 
-class RemoveEmptyStrings(BaseTransform):
-
+class RemoveEmptyStrings(AbstractTransform):
     def process_string(self, s: str):
         return s.strip()
 
@@ -160,8 +160,7 @@ class RemoveEmptyStrings(BaseTransform):
         return [s for s in inp if self.process_string(s) != ""]
 
 
-class ExpandCommonEnglishContractions(BaseTransform):
-
+class ExpandCommonEnglishContractions(AbstractTransform):
     def process_string(self, s: str):
         # definitely a non exhaustive list
 
@@ -183,8 +182,7 @@ class ExpandCommonEnglishContractions(BaseTransform):
         return s
 
 
-class ReplaceWords(BaseTransform):
-
+class ReplaceWords(AbstractTransform):
     def __init__(self, dictionary: Mapping[str, str]):
         self.dictionary = dictionary
 
@@ -195,16 +193,16 @@ class ReplaceWords(BaseTransform):
         return s
 
 
-class ToLowerCase(BaseTransform):
+class ToLowerCase(AbstractTransform):
     def process_string(self, s: str):
         return s.lower()
 
 
-class ToUpperCase(BaseTransform):
+class ToUpperCase(AbstractTransform):
     def process_string(self, s: str):
         return s.upper()
 
 
-class RemoveKaldiNonWords(BaseTransform):
+class RemoveKaldiNonWords(AbstractTransform):
     def process_string(self, s: str):
         return re.sub(r"[<\[][^>\]]*[>\]]", "", s)

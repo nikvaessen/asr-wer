@@ -54,12 +54,14 @@ _standardize_transform = tr.Compose(
     ]
 )
 
+SPECIAL_EMPTY_HYPOTHESIS_TOKEN = "SPECIALEMPTYHYPOTHESISTOKENTHISWORDCANNEVERHAPPENINREALLIFEOK"
+
 
 def wer(
     truth: Union[str, List[str]],
     hypothesis: Union[str, List[str]],
-    truth_transform=_default_transform,
-    hypothesis_transform=_default_transform,
+    truth_transform: Union[tr.Compose, tr.AbstractTransform] = _default_transform,
+    hypothesis_transform: Union[tr.Compose, tr.AbstractTransform] = _default_transform,
     **kwargs
 ) -> float:
     """
@@ -87,13 +89,21 @@ def wer(
         truth = _standardize_transform(truth)
         hypothesis = _standardize_transform(truth)
     if "words_to_filter" in kwargs:
-        t = tr.RemoveSpecificWords(kwargs['words_to_filter'])
+        t = tr.RemoveSpecificWords(kwargs["words_to_filter"])
         truth = t(truth)
         hypothesis = t(hypothesis)
 
     # Apply transforms. By default, it collapses input to a list of words
     truth = truth_transform(truth)
     hypothesis = hypothesis_transform(hypothesis)
+
+    # raise an error if the ground truth is empty
+    if len(truth) == 0:
+        raise ValueError("the ground truth cannot be an empty")
+
+    # make sure the WER can be computed if the hypothesis is an empty string
+    if len(hypothesis) == 0:
+        hypothesis = [SPECIAL_EMPTY_HYPOTHESIS_TOKEN]
 
     # Create the list of vocabulary used
     vocab = {w: i for i, w in enumerate(set(chain(truth, hypothesis)))}
