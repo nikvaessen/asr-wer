@@ -203,7 +203,7 @@ print(jiwer.RemoveEmptyStrings()(sentences))
 
 `jiwer.ExpandCommonEnglishContractions()` can be used to replace common contractions such as `let's` to `let us`.
 
-Currently, this method will perform the following replacements. Note that `␣` is used to indicate a space ` ` to get around markdown rendering constrains.
+Currently, this method will perform the following replacements. Note that `␣` is used to indicate a space (` `) to get around markdown rendering constrains.
 
 | Contraction   | transformed into |
 | ------------- |:----------------:|
